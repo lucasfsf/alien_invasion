@@ -6,6 +6,7 @@ from settings import Settings
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
+from rain import Rain
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -22,8 +23,11 @@ class AlienInvasion:
         self.ship = Ship(self)
         self.bullets = pygame.sprite.Group()
         self.aliens = pygame.sprite.Group()
+        self.rain = pygame.sprite.Group()
 
         self._create_fleet()
+        self._create_rain_grid()
+
 
     def run_game(self):
         """Start the main loop for the game."""
@@ -32,6 +36,7 @@ class AlienInvasion:
             self.ship.update()
             self._update_bullets()
             self._update_aliens()
+            self._update_rain()
             self._update_screen()
 
     def _check_events(self):
@@ -77,7 +82,7 @@ class AlienInvasion:
         for bullet in self.bullets.copy():
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
-
+    
     def _update_aliens(self):
         """
         Check if the fllet is at an edge,
@@ -85,6 +90,10 @@ class AlienInvasion:
         """
         self._check_fleet_edges()
         self.aliens.update()
+    
+    def _update_rain(self):
+        """Makes the rain move"""
+        self.rain.update()
 
     def _create_fleet(self):
         """Create the fleet of aliens."""
@@ -128,6 +137,33 @@ class AlienInvasion:
             alien.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
 
+    def _create_rain_grid(self):
+        """Create the rain grid"""
+        # Create a rain drop and find the number of rain drop in a row
+        # Spacing between each rain drop is equal to 5* its width
+        rain_drop = Rain(self)
+        rain_drop_width, rain_drop_height = rain_drop.rect.size
+        available_space_x = self.settings.screen_width
+        number_rain_drops_x = available_space_x // (5 * rain_drop_width)
+        
+        # Create the rain grid in 5 rows
+        rows = 5
+        for row_number in range(rows):
+            for rain_drop_number in range(number_rain_drops_x):
+                print(f"Row Number: {row_number} - Rain numb: {rain_drop_number}")
+                self._create_rain(rain_drop_number, row_number)
+
+    def _create_rain(self, rain_number, row_number):
+        """Create a rain drop and place it in the row"""
+        rain_drop = Rain(self)
+        rain_drop_width, rain_drop_height = rain_drop.rect.size
+        rain_drop.x = rain_drop_width + 5 * rain_drop_width * rain_number
+        rain_drop.rect.x = rain_drop.x
+        rain_drop.rect.y = rain_drop_height + 3 * rain_drop_height * row_number
+        print(f"x: {rain_drop.rect.x} | y: {rain_drop.rect.y}")
+        self.rain.add(rain_drop)
+
+
     def _update_screen(self):
         """Updates images on the screen, and flip to the new screen."""
         self.screen.fill(self.settings.bg_color)
@@ -135,6 +171,8 @@ class AlienInvasion:
         for bullet in self.bullets.sprites():
             bullet.draw_bullet()
         self.aliens.draw(self.screen)
+        for rain_drop in self.rain.sprites():
+            rain_drop.draw_rain()
 
         pygame.display.flip()
 
