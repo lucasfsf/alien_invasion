@@ -2,6 +2,8 @@ import sys
 from time import sleep
 from typing import Tuple
 
+import json
+
 import pygame
 
 from settings import Settings
@@ -11,6 +13,8 @@ from button import Button
 from ship import Ship
 from bullet import Bullet
 from alien import Alien
+
+high_score_file = 'high_score.json'
 
 class AlienInvasion:
     """Overall class to manage game assets and behavior."""
@@ -96,6 +100,8 @@ class AlienInvasion:
         elif event.key == pygame.K_LEFT:
             self.ship.moving_left = True
         elif event.key == pygame.K_q:
+            # Try to update the high score file before closing
+            self._update_high_score()
             sys.exit()
         elif event.key == pygame.K_SPACE:
             self._fire_bullet()
@@ -106,6 +112,15 @@ class AlienInvasion:
             self.ship.moving_right = False
         elif event.key == pygame.K_LEFT:
             self.ship.moving_left = False
+
+    def _update_high_score(self):
+        """Updates high score file"""
+        try:   
+            with open(high_score_file, 'w') as f:
+                high_score = self.stats.high_score
+                json.dump(high_score,f)
+        except FileNotFoundError:
+            pass
 
     def _fire_bullet(self):
         """Create a new bullet and add it to the bullets group."""
